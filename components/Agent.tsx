@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-import { interviewer } from "@/constants";
 import { createFeedback } from "@/lib/actions/general.action";
 
 enum CallStatus {
@@ -28,6 +27,7 @@ const Agent = ({
   feedbackId,
   type,
   questions,
+  profileImage,
 }: AgentProps) => {
   const router = useRouter();
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -116,17 +116,13 @@ const Agent = ({
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
+    const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
 
+    if (!workflowId) {
+      setCallStatus(CallStatus.INACTIVE);
+      return;
+    }
     if (type === "generate") {
-      const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
-      console.log("Attempting to start Vapi with workflow ID:", workflowId);
-
-      if (!workflowId) {
-        console.error("VAPI_WORKFLOW_ID is not set in the environment variables.");
-        setCallStatus(CallStatus.INACTIVE); // Reset button state
-        return; // Stop execution
-      }
-      
       await vapi.start(workflowId, {
         variableValues: {
           username: userName,
@@ -141,7 +137,7 @@ const Agent = ({
           .join("\n");
       }
 
-      await vapi.start(interviewer, {
+      await vapi.start(workflowId, {
         variableValues: {
           questions: formattedQuestions,
         },
@@ -176,7 +172,7 @@ const Agent = ({
         <div className="card-border">
           <div className="card-content">
             <Image
-              src="/user-avatar.png"
+              src={profileImage || "/user-avatar.png"}
               alt="profile-image"
               width={539}
               height={539}
