@@ -1,13 +1,22 @@
-import AgentDummy from '@/components/agent-dummy'
-import React from 'react'
+import Agent from "@/components/Agent";
+import { getCurrentUser } from "@/lib/actions/auth.action";
 
-const InterviewPage = () => {
+const Page = async () => {
+  const user = await getCurrentUser();
+  console.log('VAPI WORKFLOW ID:', process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID);
+
   return (
-    <div>
-        <h3>Interview Generation</h3>
-        <AgentDummy userName="you" userId="user1" type="generate" />
-    </div>
-  )
-}
+    <>
+      <h3>Interview generation</h3>
 
-export default InterviewPage
+      <Agent
+        userName={user?.name!}
+        userId={user?.id}
+        profileImage={user?.profileURL || ""}
+        type="generate"
+      />
+    </>
+  );
+};
+
+export default Page;
